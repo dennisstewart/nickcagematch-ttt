@@ -128,8 +128,8 @@ local k, v
 		ent:SetPos( self.Owner:GetPos() )
 		ent:SetOwner( self.Owner )
 		ent:Spawn()
-		ent:SetKeyValue( "iMagnitude", "300" ) --damage dealt at center
-		ent:SetKeyValue( "iRadiusOverride", "400" ) --if not specified, radius equals magnitude. I think this is in Hammer units, so 16 units equals 1 foot.
+		ent:SetKeyValue( "iMagnitude", "420" ) --damage dealt at center
+		--ent:SetKeyValue( "iRadiusOverride", "400" ) --if not specified, radius equals magnitude. I think this is in Hammer units, so 16 units equals 1 foot.
 		ent:Fire( "Explode", 0, 0 )
 		ent:EmitSound( "roundabout/explosion.wav", 500, 500 )
 		
