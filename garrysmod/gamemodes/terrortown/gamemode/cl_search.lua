@@ -5,8 +5,8 @@ local PT = LANG.GetParamTranslation
 
 local is_dmg = util.BitSet
 
-local dtt = { search_dmg_crush = DMG_CRUSH, search_dmg_bullet = DMG_BULLET, search_dmg_fall = DMG_FALL, 
-search_dmg_boom = DMG_BLAST, search_dmg_club = DMG_CLUB, search_dmg_drown = DMG_DROWN, search_dmg_stab = DMG_SLASH, 
+local dtt = { search_dmg_crush = DMG_CRUSH, search_dmg_bullet = DMG_BULLET, search_dmg_fall = DMG_FALL,
+search_dmg_boom = DMG_BLAST, search_dmg_club = DMG_CLUB, search_dmg_drown = DMG_DROWN, search_dmg_stab = DMG_SLASH,
 search_dmg_burn = DMG_BURN, search_dmg_tele = DMG_SONIC, search_dmg_car = DMG_VEHICLE }
 
 -- "From his body you can tell XXX"
@@ -334,8 +334,8 @@ local function ShowSearchScreen(search_raw)
    dident:SetSize(bw_large, bh)
    dident:SetText(T("search_confirm"))
    local id = search_raw.eidx + search_raw.dtime
-   dident.DoClick = function() RunConsoleCommand("ttt_confirm_death", search_raw.eidx, id) end
-   dident:SetDisabled(client:IsSpec() or (not client:KeyDownLast(IN_WALK)))
+   dident.DoClick = function(s) s:SetEnabled(false) RunConsoleCommand("ttt_confirm_death", search_raw.eidx, id) end
+   dident:SetEnabled(not (client:IsSpec() or (not client:KeyDownLast(IN_WALK))))
 
    local dcall = vgui.Create("DButton", dcont)
    dcall:SetPos(m*2 + bw_large, by)
@@ -344,12 +344,12 @@ local function ShowSearchScreen(search_raw)
    dcall.DoClick = function(s)
                       client.called_corpses = client.called_corpses or {}
                       table.insert(client.called_corpses, search_raw.eidx)
-                      s:SetDisabled(true)
+                      s:SetEnabled(false)
 
                       RunConsoleCommand("ttt_call_detective", search_raw.eidx)
                    end
 
-   dcall:SetDisabled(client:IsSpec() or table.HasValue(client.called_corpses or {}, search_raw.eidx))
+   dcall:SetEnabled(not (client:IsSpec() or table.HasValue(client.called_corpses or {}, search_raw.eidx)))
 
    local dconfirm = vgui.Create("DButton", dcont)
    dconfirm:SetPos(rw - m - bw, by)
@@ -422,14 +422,7 @@ local function StoreSearchResult(search)
    end
 end
 
-local function bitsRequired(num)
-   local bits, max = 0, 1
-   while max <= num do
-      bits = bits + 1
-      max = max + max
-   end
-   return bits
-end
+local bitsRequired = util.BitsRequired
 
 local plyBits = bitsRequired(game.MaxPlayers())
 
@@ -448,7 +441,7 @@ local function ReceiveRagdollSearch()
    search.nick = net.ReadString()
 
    -- Equipment
-   local eq = net.ReadUInt(bitsRequired(EQUIP_MAX))
+   local eq = net.ReadInt(bitsRequired(EQUIP_MAX, true))
 
    -- All equipment pieces get their own icon
    search.eq_armor = util.BitSet(eq, EQUIP_ARMOR)
@@ -489,7 +482,7 @@ local function ReceiveRagdollSearch()
    --
    local words = net.ReadString()
    search.words = (words ~= "") and words or nil
-   
+
    hook.Call("TTTBodySearchEquipment", nil, search, eq)
 
    if search.show and hook.Run("TTTShowSearchScreen", search) ~= false then

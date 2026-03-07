@@ -23,6 +23,7 @@ AddCSLuaFile("lang_shd.lua")
 AddCSLuaFile("corpse_shd.lua")
 AddCSLuaFile("player_ext_shd.lua")
 AddCSLuaFile("weaponry_shd.lua")
+AddCSLuaFile("radio_shd.lua")
 AddCSLuaFile("cl_radio.lua")
 AddCSLuaFile("cl_radar.lua")
 AddCSLuaFile("cl_tbuttons.lua")
@@ -171,7 +172,7 @@ function GM:Initialize()
       [OPEN_ROT] = true,
       [OPEN_BUT] = true,
       [OPEN_NOTOGGLE]= true
-   };
+   }
 
    -- More map config ent defaults
    GAMEMODE.force_plymodel = ""
@@ -204,10 +205,6 @@ function GM:Initialize()
    if cvars.Number("sv_alltalk", 0) > 0 then
       ErrorNoHalt("TTT WARNING: sv_alltalk is enabled. Dead players will be able to talk to living players. TTT will now attempt to set sv_alltalk 0.\n")
       RunConsoleCommand("sv_alltalk", "0")
-   end
-
-   if not IsMounted("cstrike") then
-      ErrorNoHalt("TTT WARNING: CS:S does not appear to be mounted by GMod. Things may break in strange ways. Server admin? Check the TTT readme for help.\n")
    end
 end
 
@@ -369,27 +366,6 @@ function StopWinChecks()
    timer.Stop("winchecker")
 end
 
-local function CleanUp()
-   local et = ents.TTT
-   -- if we are going to import entities, it's no use replacing HL2DM ones as
-   -- soon as they spawn, because they'll be removed anyway
-   et.SetReplaceChecking(not et.CanImportEntities(game.GetMap()))
-
-   et.FixParentedPreCleanup()
-
-   game.CleanUpMap(false, nil, function() et.FixParentedPostCleanup() end)
-
-   -- Strip players now, so that their weapons are not seen by ReplaceEntities
-   for k,v in player.Iterator() do
-      if IsValid(v) then
-         v:StripWeapons()
-      end
-   end
-
-   -- a different kind of cleanup
-   hook.Remove("PlayerSay", "ULXMeCheck")
-end
-
 local function SpawnEntities()
    local et = ents.TTT
    -- Spawn weapons from script if there is one
@@ -410,6 +386,30 @@ local function SpawnEntities()
 
    -- Finally, get players in there
    SpawnWillingPlayers()
+end
+
+local function CleanUp()
+   local et = ents.TTT
+   -- if we are going to import entities, it's no use replacing HL2DM ones as
+   -- soon as they spawn, because they'll be removed anyway
+   et.SetReplaceChecking(not et.CanImportEntities(game.GetMap()))
+
+   et.FixParentedPreCleanup()
+
+   game.CleanUpMap(false, nil, function()
+      et.FixParentedPostCleanup()
+      SpawnEntities()
+   end)
+
+   -- Strip players now, so that their weapons are not seen by ReplaceEntities
+   for k,v in player.Iterator() do
+      if IsValid(v) then
+         v:StripWeapons()
+      end
+   end
+
+   -- a different kind of cleanup
+   hook.Remove("PlayerSay", "ULXMeCheck")
 end
 
 
@@ -493,9 +493,6 @@ function PrepareRound()
 
    LANG.Msg("round_begintime", {num = ptime})
    SetRoundState(ROUND_PREP)
-
-   -- Delay spawning until next frame to avoid ent overload
-   timer.Simple(0.01, SpawnEntities)
 
    -- Undo the roundrestart mute, though they will once again be muted for the
    -- selectmute timer.
@@ -839,7 +836,7 @@ function SelectRoles()
       [ROLE_INNOCENT] = {},
       [ROLE_TRAITOR] = {},
       [ROLE_DETECTIVE] = {}
-   };
+   }
 
    if not GAMEMODE.LastRole then GAMEMODE.LastRole = {} end
 

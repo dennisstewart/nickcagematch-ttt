@@ -25,12 +25,12 @@ function Register( t, name, derived )
 
 		if ( CurrentGM.FolderName == name ) then
 			table.Merge( CurrentGM, t )
-			Call( "OnReloaded" );
+			Call( "OnReloaded" )
 		end
 
 		if ( CurrentGM.BaseClass && CurrentGM.BaseClass.FolderName == name ) then
 			table.Merge( CurrentGM.BaseClass, t )
-			Call( "OnReloaded" );
+			Call( "OnReloaded" )
 		end
 
 	end
@@ -75,7 +75,7 @@ local currentGM
 function Call( name, ... )
 
 	if ( !currentGM ) then
-	currentGM = gmod.GetGamemode()
+		currentGM = gmod.GetGamemode()
 	end
 
 	-- If the gamemode function doesn't exist just return false

@@ -29,7 +29,7 @@ function GetEquipmentForRole(role)
                type     = "Type not specified",
                model    = "models/weapons/w_bugbait.mdl",
                desc     = "No description specified."
-            };
+            }
 
             -- Force material to nil so that model key is used when we are
             -- explicitly told to do so (ie. material is false rather than nil).
@@ -341,7 +341,7 @@ local function TraitorMenuPopup()
    local dconfirm = vgui.Create("DButton", dinfobg)
    dconfirm:SetPos(0, dih - bh*2)
    dconfirm:SetSize(bw, bh)
-   dconfirm:SetDisabled(true)
+   dconfirm:SetEnabled(false)
    dconfirm:SetText(GetTranslation("equip_confirm"))
 
 
@@ -389,7 +389,7 @@ local function TraitorMenuPopup()
 
                                    can_order = update_preqs(new.item)
 
-                                   dconfirm:SetDisabled(not can_order)
+                                   dconfirm:SetEnabled(can_order)
                                 end
 
    -- select first
@@ -411,14 +411,14 @@ local function TraitorMenuPopup()
 
                             if new:GetPanel() == dequip then
                                can_order = update_preqs(dlist.SelectedPanel.item)
-                               dconfirm:SetDisabled(not can_order)
+                               dconfirm:SetEnabled(can_order)
                             end
                          end
 
    local dcancel = vgui.Create("DButton", dframe)
    dcancel:SetPos(w - 13 - bw, h - bh - 16)
    dcancel:SetSize(bw, bh)
-   dcancel:SetDisabled(false)
+   dcancel:SetEnabled(true)
    dcancel:SetText(GetTranslation("close"))
    dcancel.DoClick = function() dframe:Close() end
 
@@ -456,7 +456,7 @@ local function ReceiveEquipment()
    local ply = LocalPlayer()
    if not IsValid(ply) then return end
 
-   ply.equipment_items = net.ReadUInt(16)
+   ply.equipment_items = net.ReadInt(util.BitsRequired(EQUIP_MAX, true))
 end
 net.Receive("TTT_Equipment", ReceiveEquipment)
 
@@ -494,10 +494,19 @@ local function ReceiveBought()
 end
 net.Receive("TTT_Bought", ReceiveBought)
 
+local bitsRequired = util.BitsRequired
+
 -- Player received the item he has just bought, so run clientside init
 local function ReceiveBoughtItem()
-   local is_item = net.ReadBit() == 1
-   local id = is_item and net.ReadUInt(16) or net.ReadString()
+   local is_item = net.ReadBool()
+
+   local id
+   if is_item then
+      local exponent = net.ReadUInt(bitsRequired(math.log(EQUIP_MAX) / math.log(2)))
+      id = 2 ^ exponent
+   else
+      id = net.ReadString()
+   end
 
    -- I can imagine custom equipment wanting this, so making a hook
    hook.Run("TTTBoughtItem", is_item, id)

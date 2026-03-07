@@ -12,7 +12,7 @@ if CLIENT then
    SWEP.EquipMenuData = {
       type = "item_weapon",
       desc = "ump_desc"
-   };
+   }
 
    SWEP.Icon               = "vgui/ttt/icon_ump"
    SWEP.IconLetter         = "q"
@@ -59,13 +59,15 @@ function SWEP:ShootBullet( dmg, recoil, numbul, cone )
    ]]
 
    local bullet = {}
-   bullet.Num    = numbul
-   bullet.Src    = self:GetOwner():GetShootPos()
-   bullet.Dir    = self:GetOwner():GetAimVector()
-   bullet.Spread = Vector( cone, cone, 0 )
-   bullet.Tracer = 4
-   bullet.Force  = 5
-   bullet.Damage = dmg
+   bullet.Num       = numbul
+   bullet.Src       = self:GetOwner():GetShootPos()
+   bullet.Dir       = self:GetOwner():GetAimVector()
+   bullet.Spread    = Vector( cone, cone, 0 )
+   bullet.Tracer    = 4
+   bullet.Force     = 5
+   bullet.Damage    = dmg
+   bullet.Attacker  = self:GetOwner()
+   bullet.Inflictor = self
 
    bullet.Callback = function(att, tr, dmginfo)
                         if SERVER or (CLIENT and IsFirstTimePredicted()) then

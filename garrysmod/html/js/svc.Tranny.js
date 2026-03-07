@@ -1,9 +1,10 @@
 
 var languageCache = {};
+var languageCurrent = "";
 
-angular.module( 'tranny', [] )
+angular.module( "tranny", [] )
 
-.directive( 'ngTranny', function ( $parse )
+.directive( "ngTranny", function( $parse )
 {
 	return function( scope, element, attrs )
 	{
@@ -12,30 +13,40 @@ angular.module( 'tranny', [] )
 
 		var update = function()
 		{
-			var text = strName + " " + strSuffix;
-			
+			var text = strName + ( strSuffix ? " " + strSuffix : "" );
+
 			if ( !IN_ENGINE )
 			{
-				element.text( text );
-				element.attr( "placeholder", text );
+				updateElement( text );
 				return;
 			}
 
 			var outStr_old = languageCache[ strName ] || language.Update( strName, function( outStr )
 			{
 				languageCache[ strName ] = outStr;
-				var updatedText = outStr + " " + strSuffix;
-				element.text( updatedText );
-				element.attr( "placeholder", updatedText );
+				var updatedText = outStr + ( strSuffix ? " " + strSuffix : "" );
+				updateElement( updatedText );
 			} );
 
 			if ( outStr_old )
 			{
 				// Compatibility with Awesomium
 				languageCache[ strName ] = outStr_old;
-				var updatedText = outStr_old + " " + strSuffix;
-				element.text( updatedText );
-				element.attr( "placeholder", updatedText );
+				var updatedText = outStr_old + ( strSuffix ? " " + strSuffix : "" );
+				updateElement( updatedText );
+			}
+		};
+
+		var updateElement = function( str )
+		{
+			if ( "placeholder" in element[0] )
+			{
+				if ( element.attr( "placeholder" ) != str )
+					element.attr( "placeholder", str );
+			}
+			else if ( element.text() != str )
+			{
+				element.text( str );
 			}
 		};
 
@@ -47,9 +58,13 @@ angular.module( 'tranny', [] )
 			update();
 		} );
 
-		scope.$on( 'languagechanged', function()
+		scope.$on( "languagechanged", function()
 		{
-			languageCache = {};
+			if ( languageCurrent != gScope.Language )
+			{
+				languageCurrent = gScope.Language;
+				languageCache = {};
+			}
 			update();
 		} );
 
