@@ -13,11 +13,13 @@
 	"superadmin"
 	{
 		//"garry"			"STEAM_0:1:7099"
+		"GraveTracer"			"STEAM_0:1:16919835"
 	}
 	
 	"admin"
 	{
 		//"garry"			"STEAM_0:1:7099"
+		"GraveTracer"			"STEAM_0:1:16919835"
 	}
 
 }
